@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCQ Tester</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@700&family=Open+Sans:wght@400;600&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #f5f6f5;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        font-family: "Open Sans", sans-serif;
+      }
+
+      .container {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        width: 100%;
+        max-width: 650px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      h1 {
+        color: #1cb0f6;
+        text-align: center;
+        margin-bottom: 20px;
+        font-family: "Nunito", sans-serif;
+        font-weight: 700;
+        font-size: 1.8em;
+      }
+
+      .progress {
+        margin-bottom: 20px;
+        color: #777;
+        text-align: center;
+        font-size: 0.9em;
+        font-weight: 400;
+      }
+
+      .question {
+        margin-bottom: 20px;
+        font-size: 1.2em;
+        color: #333;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .options {
+        display: grid;
+        gap: 12px;
+        margin-top: 15px;
+      }
+
+      .option {
+        background: #fff;
+        padding: 15px;
+        border: 2px solid #e2e2e2;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #333;
+        text-align: left;
+        font-size: 1em;
+      }
+
+      .option:hover {
+        border-color: #58cc02;
+        transform: scale(1.02);
+      }
+
+      .option.selected {
+        background: #58cc02;
+        color: #fff;
+        border-color: #58cc02;
+      }
+
+      button {
+        background: #58cc02;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 25px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 1.1em;
+        font-family: "Nunito", sans-serif;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        margin-top: 25px;
+        text-transform: uppercase;
+      }
+
+      button:hover {
+        background: #47a702;
+        transform: scale(1.03);
+      }
+
+      /* Refined Result Styles */
+      .result {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 450px;
+        background: linear-gradient(135deg, #fff, #f0f9ff);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+      }
+
+      .result h2 {
+        font-family: "Nunito", sans-serif;
+        font-weight: 700;
+        font-size: 2em;
+        color: #58cc02;
+        margin-bottom: 15px;
+      }
+
+      .result p {
+        font-family: "Open Sans", sans-serif;
+        font-weight: 600;
+        font-size: 1.2em;
+        color: #333;
+        margin: 10px 0;
+      }
+
+      .result .percentage {
+        font-size: 1.5em;
+        color: #1cb0f6;
+      }
+
+      .result button {
+        margin-top: 20px;
+        background: #58cc02;
+        color: white;
+        padding: 12px 40px;
+        width: auto;
+        display: inline-block;
+      }
+
+      .result button:hover {
+        background: #47a702;
+      }
+
+      /* Feedback Popup Styles */
+      .feedback {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 500px;
+        width: 90%;
+        padding: 25px;
+        color: #fff;
+        text-align: center;
+        display: none;
+        font-size: 1.1em;
+        font-family: "Nunito", sans-serif;
+        font-weight: 700;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+
+      .feedback.correct {
+        background: linear-gradient(135deg, #58cc02, #4ab602);
+      }
+
+      .feedback.wrong {
+        background: linear-gradient(135deg, #ff6b6b, #e55a5a);
+      }
+
+      .feedback-text {
+        margin-bottom: 15px;
+        line-height: 1.4;
+      }
+
+      .feedback button {
+        margin-top: 10px;
+        background: #fff;
+        color: #333;
+        padding: 10px 30px;
+        width: auto;
+        display: inline-block;
+        border-radius: 20px;
+        font-size: 1em;
+        text-transform: uppercase;
+      }
+
+      .feedback button:hover {
+        background: #f0f0f0;
+        transform: scale(1.05);
+      }
+
+      /* Animations */
+      @keyframes slideUp {
+        from {
+          transform: translate(-50%, 100%);
+          opacity: 0;
+        }
+        to {
+          transform: translate(-50%, 0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes scaleIn {
+        from {
+          transform: translate(-50%, -50%) scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .feedback.show {
+        display: block;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .result.show {
+        display: block;
+        animation: scaleIn 0.4s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>MCQ Tester</h1>
+      <div class="progress"></div>
+      <div class="question"></div>
+      <div class="options"></div>
+      <button onclick="checkAnswer()">Continue</button>
+      <div class="result">
+        <h2>Quiz Completed!</h2>
+        <p>
+          You got <span class="score"></span> out of
+          <span class="total"></span> correct!
+        </p>
+        <p class="percentage"></p>
+        <button onclick="location.reload()">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Feedback Popup -->
+    <div class="feedback">
+      <div class="feedback-text"></div>
+      <button onclick="nextQuestion()">Continue</button>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="correctSound" preload="auto">
+      <source src="good.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="wrongSound" preload="auto">
+      <source src="bad.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="finishSound" preload="auto">
+      <source src="end.mp3" type="audio/mpeg" />
+    </audio>
+
+    <script>
+      const quizData = [
+        {
+          question:
+            "Which category includes conversation topics like hobbies, relationships, and daily life?",
+          options: [
+            "Workplace & Professional Network",
+            "Personal & Social Circle",
+            "Authorities & Formal Situations",
+            "Healthcare & Medical Services",
+          ],
+          correct: "Personal & Social Circle",
+        },
+        {
+          question:
+            "What is a common conversation topic in the Workplace & Professional Network category?",
+          options: [
+            "Asking for directions",
+            "Discussing promotions and career growth",
+            "Talking about neighborhood issues",
+            "Ordering food at a restaurant",
+          ],
+          correct: "Discussing promotions and career growth",
+        },
+        {
+          question:
+            "In Public & Service Interactions, which of these is a likely conversation topic?",
+          options: [
+            "Making a hotel reservation",
+            "Discussing job promotions",
+            "Talking about childhood memories",
+            "Debating politics",
+          ],
+          correct: "Making a hotel reservation",
+        },
+        {
+          question:
+            "Which group of people does the Educational & Learning Environments category include?",
+          options: [
+            "Doctors and nurses",
+            "Teachers and classmates",
+            "Waiters and shopkeepers",
+            "Tourists and locals",
+          ],
+          correct: "Teachers and classmates",
+        },
+        {
+          question:
+            "What is a frequent conversation topic in Healthcare & Medical Services?",
+          options: [
+            "Ordering food at a restaurant",
+            "Scheduling a medical appointment",
+            "Discussing career opportunities",
+            "Complaining about slow internet",
+          ],
+          correct: "Scheduling a medical appointment",
+        },
+        {
+          question:
+            "Which category covers conversations about passports, visas, and tax forms?",
+          options: [
+            "Travel & Cultural Encounters",
+            "Authorities & Formal Situations",
+            "Digital & Online Interactions",
+            "Hobby & Interest-Based Communities",
+          ],
+          correct: "Authorities & Formal Situations",
+        },
+        {
+          question:
+            "What is a common conversation topic in Digital & Online Interactions?",
+          options: [
+            "Booking a hotel room",
+            "Asking for tech support",
+            "Giving feedback to a waiter",
+            "Discussing workplace conflicts",
+          ],
+          correct: "Asking for tech support",
+        },
+        {
+          question:
+            "Which conversation topic belongs to the Travel & Cultural Encounters category?",
+          options: [
+            "Talking about future career plans",
+            "Asking for directions",
+            "Explaining a medical symptom",
+            "Debating workplace etiquette",
+          ],
+          correct: "Asking for directions",
+        },
+        {
+          question:
+            "In Community & Social Interactions, which topic is likely to come up?",
+          options: [
+            "Discussing noise complaints",
+            "Negotiating a salary",
+            "Asking for a doctor's advice",
+            "Reviewing a video game",
+          ],
+          correct: "Discussing noise complaints",
+        },
+        {
+          question:
+            "Which of these topics fits into the Romantic & Dating Interactions category?",
+          options: [
+            "Talking about visa applications",
+            "Planning a weekend getaway",
+            "Complaining about a defective product",
+            "Asking for homework help",
+          ],
+          correct: "Planning a weekend getaway",
+        },
+        {
+          question:
+            "Which category focuses on shared interests such as sports, books, and gaming?",
+          options: [
+            "Hobby & Interest-Based Communities",
+            "Personal & Social Circle",
+            "Workplace & Professional Network",
+            "Authorities & Formal Situations",
+          ],
+          correct: "Hobby & Interest-Based Communities",
+        },
+      ];
+
+      let currentQuestion = 0;
+      let score = 0;
+      let selectedAnswer = null;
+
+      const questionEl = document.querySelector(".question");
+      const optionsEl = document.querySelector(".options");
+      const submitBtn = document.querySelector(".container button");
+      const resultEl = document.querySelector(".result");
+      const progressEl = document.querySelector(".progress");
+      const feedbackEl = document.querySelector(".feedback");
+      const feedbackTextEl = document.querySelector(".feedback-text");
+      const scoreEl = document.querySelector(".result .score");
+      const totalEl = document.querySelector(".result .total");
+      const percentageEl = document.querySelector(".result .percentage");
+
+      const correctSound = document.getElementById("correctSound");
+      const wrongSound = document.getElementById("wrongSound");
+      const finishSound = document.getElementById("finishSound");
+
+      function playSound(audioElement) {
+        audioElement.currentTime = 0;
+        audioElement.play().catch((error) => {
+          console.log("Sound playback failed:", error);
+        });
+      }
+
+      function loadQuestion() {
+        const q = quizData[currentQuestion];
+        questionEl.textContent = q.question;
+        optionsEl.innerHTML = "";
+        progressEl.textContent = `Question ${currentQuestion + 1} of ${
+          quizData.length
+        }`;
+
+        q.options.forEach((option) => {
+          const div = document.createElement("div");
+          div.classList.add("option");
+          div.textContent = option;
+          div.onclick = () => selectAnswer(option, div);
+          optionsEl.appendChild(div);
+        });
+
+        selectedAnswer = null;
+        submitBtn.style.display = "block";
+        resultEl.classList.remove("show");
+        feedbackEl.classList.remove("show");
+      }
+
+      function selectAnswer(option, element) {
+        selectedAnswer = option;
+        document
+          .querySelectorAll(".option")
+          .forEach((opt) => opt.classList.remove("selected"));
+        element.classList.add("selected");
+      }
+
+      function checkAnswer() {
+        if (!selectedAnswer) return;
+
+        const correctAnswer = quizData[currentQuestion].correct;
+        submitBtn.style.display = "none";
+
+        if (selectedAnswer === correctAnswer) {
+          score++;
+          playSound(correctSound);
+          feedbackTextEl.textContent = "Great job! That’s correct!";
+        } else {
+          playSound(wrongSound);
+          feedbackTextEl.innerHTML = `Oops, that’s wrong.<br>The correct answer is: <strong>${correctAnswer}</strong>`;
+        }
+
+        feedbackEl.classList.remove("correct", "wrong");
+        feedbackEl.classList.add(
+          selectedAnswer === correctAnswer ? "correct" : "wrong"
+        );
+        feedbackEl.classList.add("show");
+      }
+
+      function nextQuestion() {
+        currentQuestion++;
+
+        if (currentQuestion < quizData.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }
+
+      function showResults() {
+        playSound(finishSound);
+        questionEl.style.display = "none";
+        optionsEl.style.display = "none";
+        submitBtn.style.display = "none";
+        progressEl.style.display = "none";
+        feedbackEl.style.display = "none";
+
+        scoreEl.textContent = score;
+        totalEl.textContent = quizData.length;
+        percentageEl.textContent = `Percentage: ${(
+          (score / quizData.length) *
+          100
+        ).toFixed(1)}%`;
+        resultEl.classList.add("show");
+      }
+
+      window.onload = () => {
+        correctSound.load();
+        wrongSound.load();
+        finishSound.load();
+        loadQuestion();
+      };
+    </script>
+  </body>
+</html>
